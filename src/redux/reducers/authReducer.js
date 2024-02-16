@@ -9,7 +9,6 @@ export const authReducer = (
   state = {
     user: token && userData ? { token: token, userData: userData } : null,
     isAuthenticated: token ? true : false,
-    loading: false,
   },
   action
 ) => {
@@ -24,6 +23,8 @@ export const authReducer = (
     case userConstants.FETCH_PERSONAL_INFO_REQUEST: // ? Fetch personal info request
     case authConstants.REGISTER_WITH_REQUEST:
     case authConstants.LOGIN_WITH_REQUEST:
+    case authConstants.GET_USER_REQUEST:
+    case authConstants.UPDATE_USER_REQUEST:
       // ? Fetch personal info request
       return {
         ...state,
@@ -45,8 +46,8 @@ export const authReducer = (
         loading: false,
         isAuthenticated: true,
         user: {
-          token: action.payload.token,
-          userData: action.payload.userData,
+          token: action?.payload?.token,
+          userData: action?.payload?.user,
         },
       };
 
@@ -57,6 +58,15 @@ export const authReducer = (
       return {
         ...state,
         loading: false,
+      };
+    case authConstants.GET_USER_SUCCESS:
+    case authConstants.UPDATE_USER_SUCCESS:
+      localStorage.setItem("user", JSON.stringify(action.payload));
+
+      return {
+        ...state,
+        loading: false,
+        user: action.payload,
       };
 
     case userConstants.FETCH_PERSONAL_INFO_SUCCESS: // ? Fetch personal info success
@@ -80,6 +90,8 @@ export const authReducer = (
       };
 
     case authConstants.LOGIN_FAILURE: // ? Login failure
+    case authConstants.GET_USER_FAILURE: // ? Login failure
+    case authConstants.UPDATE_USER_FAILURE: // ? Login failure
     case authConstants.SIGNUP_FAILURE: // ? Signup failure
     case authConstants.REGISTER_WITH_FAILURE: // ? Signup failure
     case authConstants.LOGIN_WITH_FAILURE: // ? Signup failure

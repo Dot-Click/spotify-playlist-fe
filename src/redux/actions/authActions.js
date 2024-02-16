@@ -1,23 +1,23 @@
 import { authConstants } from "../constants/authConstants";
-
+import custAxios, { attachToken, formAxios } from "../../configs/axiosConfig";
 import {
   successMessage,
   errorMessage,
   warningMessage,
 } from "../../services/helpers";
-import custAxios, { attachToken } from "../../configs/axiosConfig";
+import { baseURL } from "../../configs/axiosConfig";
 
 export const signup = (values) => async (dispatch) => {
   dispatch({
     type: authConstants.SIGNUP_REQUEST,
   });
   try {
-    const res = await custAxios.post("/auth/register", values);
-    if (res?.data?.success === true) {
+    const res = await custAxios.post(`${baseURL}/auth/register`, values);
+    if (res?.data?.res === "success") {
       dispatch({
         type: authConstants.SIGNUP_SUCCESS,
       });
-      // successMessage(res?.data.message);
+      successMessage(res?.data.message);
       return "success";
     }
   } catch (error) {
@@ -84,26 +84,33 @@ export const login = (values) => async (dispatch) => {
     type: authConstants.LOGIN_REQUEST,
   });
   try {
-    const res = await custAxios.post("/auth/login", values);
-    console.log(res);
-    if (res?.data?.success === true) {
-      localStorage.setItem("token", res?.data?.data?.token);
-      localStorage.setItem("user", JSON.stringify(res?.data?.data?.userData));
+    const res = await custAxios.post(`/auth/login`, values);
+    console.log("❤❤❤❤❤❤", res);
+    if (res?.data?.success) {
+      console.log("❤❤❤❤❤❤");
+      // if (values.remember_me === true) {
+      //   localStorage.setItem("email", values.email);
+      //   localStorage.setItem("password", window.btoa(values.password));
+      // } else {
+      //   localStorage.removeItem("email");
+      //   localStorage.removeItem("password");
+      // }
+      localStorage.setItem("token", res.data.data?.jwtToken);
+      localStorage.setItem("user", JSON.stringify(res.data.data?.user));
 
       await dispatch({
         type: authConstants.LOGIN_SUCCESS,
         payload: res?.data?.data,
       });
       successMessage("Login Successful");
-      return "success";
+      return true;
     }
   } catch (error) {
-    console.log(error);
     dispatch({
       type: authConstants.LOGIN_FAILURE,
-      payload: error?.response?.data?.message || "Server Error",
+      payload: error.response.data.message || "Server Error",
     });
-    errorMessage(error?.response?.data?.message);
+    errorMessage(error.response.data.message);
   }
 };
 
@@ -112,21 +119,42 @@ export const verifyEmail = (values) => async (dispatch) => {
     type: authConstants.VERIFY_EMAIL_REQUEST,
   });
   try {
-    const res = await custAxios.post("/auth/verifyEmail", values);
-    if (res?.data?.success === true) {
+    const res = await custAxios.post("/auth/verify-email", values);
+    if (res?.data?.res === "success") {
+      localStorage.setItem("token", res?.data.token.access_token);
+      localStorage.setItem("user", JSON.stringify(res?.data.user));
+
+      localStorage.setItem("token", res?.data.token.access_token);
+      localStorage.setItem("user", JSON.stringify(res?.data.user));
+
       dispatch({
         type: authConstants.VERIFY_EMAIL_SUCCESS,
         payload: res?.data,
       });
       successMessage("Email Verified Successful");
       return "success";
+    } else if (res?.data?.res === "warning") {
+      dispatch({
+        type: authConstants.VERIFY_EMAIL_FAILURE,
+        payload: res?.data.message || "Server Error",
+      });
+      warningMessage(res?.data.message);
+    } else if (res?.data?.res === "error") {
+      dispatch({
+        type: authConstants.VERIFY_EMAIL_FAILURE,
+        payload: res?.data.message || "Server Error",
+      });
+      warningMessage(res?.data.message);
     }
   } catch (error) {
     dispatch({
       type: authConstants.VERIFY_EMAIL_FAILURE,
       payload: error.response.data.message || "Server Error",
     });
-    errorMessage(error?.response?.data?.message);
+    errorMessage(error.response.data.message);
+    if (error.response.data.message.includes("Please generate new token")) {
+      return "resend token";
+    }
   }
 };
 
@@ -183,10 +211,10 @@ export const requestVerificationToken = (email) => async (dispatch) => {
   });
   try {
     attachToken();
-    const res = await custAxios.post("/auth/requestEmailToken", {
+    const res = await custAxios.post("/auth/resend-verify-email", {
       email: email,
     });
-    if (res?.data?.success === true) {
+    if (res?.data?.res === "success") {
       dispatch({
         type: authConstants.REQUEST_VERIFICATION_TOKEN_SUCCESS,
       });
@@ -230,33 +258,61 @@ export const resetPassword = (values) => async (dispatch) => {
   }
 };
 
+export const getUserDetail = () => async (dispatch) => {
+  dispatch({
+    type: authConstants.GET_USER_REQUEST,
+  });
+  try {
+    attachToken();
+    const res = await custAxios.get("/auth/profile");
+    if (res?.data?.success) {
+      await dispatch({
+        type: authConstants.GET_USER_SUCCESS,
+        payload: res?.data?.data?.data,
+      });
+      return true;
+    }
+  } catch (error) {
+    dispatch({
+      type: authConstants.GET_USER_FAILURE,
+      payload: error.response.data.message || "Server Error",
+    });
+    errorMessage(error?.response?.data?.message);
+  }
+};
+export const updateUserDetail = (values) => async (dispatch) => {
+  dispatch({
+    type: authConstants.UPDATE_USER_REQUEST,
+  });
+  try {
+    attachToken();
+    const res = await formAxios.put("/auth/profile", values);
+    if (res?.data?.success) {
+      await dispatch({
+        type: authConstants.UPDATE_USER_SUCCESS,
+        payload: res?.data?.data?.data,
+      });
+      return true;
+    }
+  } catch (error) {
+    dispatch({
+      type: authConstants.UPDATE_USER_FAILURE,
+      payload: error.response.data.message || "Server Error",
+    });
+    errorMessage(error?.response?.data?.message);
+  }
+};
+
 export const clearErrors = () => async (dispatch) => {
   dispatch({
     type: authConstants.CLEAR_ERRORS,
   });
 };
 
-export const logout = () => async (dispatch) => {
+export const logout = () => (dispatch) => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
   dispatch({
     type: authConstants.LOGOUT_REQUEST,
   });
-  try {
-    attachToken();
-    const res = await custAxios.get("/auth/logout");
-
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    if (res?.data?.success === true) {
-      await dispatch({
-        type: authConstants.LOGOUT_SUCCESS,
-      });
-      return "success";
-    }
-  } catch (error) {
-    dispatch({
-      type: authConstants.LOGOUT_FAILURE,
-      payload: error.response.data.message || "Server Error",
-    });
-  }
 };
