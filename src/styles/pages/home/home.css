@@ -93,6 +93,8 @@
 }
 .side-bar .sidebar-links:hover {
   font-weight: 500;
+}
+.side-bar .active {
   background-color: rgba(255, 255, 255, 0.3411764706);
 }
 .side-bar .links1 {

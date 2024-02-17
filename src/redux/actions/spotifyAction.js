@@ -32,13 +32,14 @@ export const fetchPlaylist = (page, search, category) => async (dispatch) => {
     type: spotifyConstants.FETCH_PLAYLIST_REQUEST,
   });
   attachToken();
-  const pageSize = 10;
+  const pageSize = 15;
 
   try {
     const res = await custAxios.post(`/spotify/playlist`, {
       page: page,
       pageSize: pageSize,
       category: category,
+      search: search,
     });
     if (res?.data?.success) {
       const pagesCount = Math.ceil(res?.data?.data?.playlistCount / pageSize);

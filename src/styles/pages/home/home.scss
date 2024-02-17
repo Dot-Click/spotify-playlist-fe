@@ -101,9 +101,10 @@ $font-outfit: Outfit;
     position: relative;
     &:hover {
       font-weight: 500;
-
-      background-color: #ffffff57;
     }
+  }
+  .active {
+    background-color: #ffffff57;
   }
   .links1 {
     position: relative;
