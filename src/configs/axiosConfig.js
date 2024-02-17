@@ -1,6 +1,7 @@
 import axios from "axios";
 
-export const baseURL = "http://127.0.0.1:8001";
+// export const baseURL = "http://127.0.0.1:8001";
+export const baseURL = "https://spotify-playlist-be-production.up.railway.app/";
 
 // axios instance for json data
 const custAxios = axios.create({
