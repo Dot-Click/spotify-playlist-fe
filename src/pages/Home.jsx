@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Input, TextInput, Select, Pagination, Drawer } from "@mantine/core";
+import {
+  Input,
+  TextInput,
+  Select,
+  Pagination,
+  Drawer,
+  Loader,
+} from "@mantine/core";
 import { fetchCategories, fetchPlaylist } from "../redux/actions/spotifyAction";
 import { useDispatch, useSelector } from "react-redux";
 import spotifyLogo from "../assets/spotify.png";
@@ -30,11 +37,12 @@ const Home = () => {
 
   const handleCategoryFilter = (value, e) => {
     e.preventDefault();
-    dispatch(fetchPlaylist({ category: value }));
+    dispatch(fetchPlaylist(10, "", value));
+    setCategory(value);
   };
   const handleSearchFilter = (e) => {
     if (e.keyCode === 13) {
-      dispatch(fetchPlaylist({ search: e.target.value }));
+      dispatch(fetchPlaylist(10, e.target.value, category));
     }
   };
 
@@ -150,24 +158,40 @@ const Home = () => {
                   <path d="M6 10.5a.5.5 0 01.5-.5h3a.5.5 0 010 1h-3a.5.5 0 01-.5-.5zm-2-3a.5.5 0 01.5-.5h7a.5.5 0 010 1h-7a.5.5 0 01-.5-.5zm-2-3a.5.5 0 01.5-.5h11a.5.5 0 010 1h-11a.5.5 0 01-.5-.5z"></path>
                 </svg>
               </div>
-              <div className=" playList-box px-2">
-                <div className="row mt-3 ">
-                  {playlist &&
-                    playlist?.map((i) => (
-                      <div className="col-md-12 col-lg-6 my-2 ">
-                        <iframe
-                          style={{ borderRadius: "12px", width: "100%" }}
-                          src={i?.embedLink}
-                          width="35%"
-                          height={"100%"}
-                          frameBorder="0"
-                          allowfullscreen=""
-                          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                          loading="lazy"
-                        ></iframe>
+              <div className="playList-box px-2">
+                {loading ? (
+                  <div className="d-flex h-100 justify-content-center align-items-center">
+                    <Loader color="white" type="bars" />
+                  </div>
+                ) : (
+                  <div className="row mt-3">
+                    {playlist?.length > 0 ? (
+                      playlist.map((item, index) => (
+                        <div className="col-md-12 col-lg-6 my-2" key={index}>
+                          <iframe
+                            style={{ borderRadius: "12px", width: "100%" }}
+                            src={item?.embedLink}
+                            width="35%"
+                            height="100%"
+                            frameBorder="0"
+                            allowFullScreen=""
+                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                            loading="lazy"
+                          ></iframe>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="d-flex flex-column no-records justify-content-center align-items-center">
+                        <p className="heading-notFound mb-0">
+                          No Records Found
+                        </p>
+                        <p className="text-notFound">
+                          There is no playlist based on your search
+                        </p>
                       </div>
-                    ))}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             <div className="col-xl-3 col-lg-0 drawer-box">
