@@ -224,7 +224,28 @@ const Home = () => {
             {/* Drawer content */}
             <div className="">
               <div className="side-bar">
-                <p className="sidebar-heading">Hot Categories List</p>
+                <div className="d-flex mb-3 justify-content-between align-items-center">
+                  <p className="sidebar-heading mb-0 text-start">
+                    Hot Categories List
+                  </p>
+
+                  <svg
+                    onClick={close}
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="none"
+                    stroke="#fff"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    className="feather feather-x cursor-pointer"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M18 6L6 18"></path>
+                    <path d="M6 6L18 18"></path>
+                  </svg>
+                </div>
                 {categories?.map((item, i) => {
                   const value = randomColours[i];
                   return (
