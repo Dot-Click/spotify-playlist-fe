@@ -15,20 +15,68 @@ import { useDisclosure } from "@mantine/hooks";
 const Home = () => {
   const dispatch = useDispatch();
   const [opened, { open, close }] = useDisclosure(false);
+  const [loading, setLoading] = useState(true);
   const [categoriesList, setCategoriesList] = useState([]);
   const [search, setSearch] = useState("");
   const [randomColours, setRandomColours] = useState([]);
   const [category, setCategory] = useState("");
   const [activeCategory, setActiveCategory] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const { categories, loading, pagesCount, playlist } = useSelector(
-    (state) => state.spotify
-  );
+  const [playlist, setPlaylist] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const fetchPlaylist = async (search, category) => {
+    try {
+      const response = await fetch(
+        `https://dot-click.github.io/spotify-json/playlist.json`
+      );
+      console.log("response......", response);
 
+      if (response.ok) {
+        const data = await response.json();
+        console.log("data.........", data);
+
+        const filteredData = data.filter((playlist) => {
+          const categoryRegex = new RegExp(category, "i");
+          const searchRegex = new RegExp(search, "i");
+          return (
+            categoryRegex.test(playlist.category) &&
+            searchRegex.test(playlist.title)
+          );
+        });
+        setPlaylist(filteredData);
+        setLoading(false);
+      } else {
+        console.error("Failed to fetch playlist data");
+      }
+    } catch (error) {
+      console.error("Error fetching playlist data:", error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(
+        `https://dot-click.github.io/spotify-json/category.json`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        const categoriesWithAll = ["All", ...data];
+        setCategories(categoriesWithAll);
+        setLoading(false);
+      } else {
+        console.error("Failed to fetch playlist data");
+      }
+    } catch (error) {
+      console.error("Error fetching playlist data:", error);
+    }
+  };
   useEffect(() => {
-    dispatch(fetchCategories());
-    dispatch(fetchPlaylist());
+    fetchPlaylist();
+    fetchCategories();
   }, []);
+
+  console.log("fetchPlaylist", playlist);
+  console.log("fetchCategories", categories);
   const paginationHandler = async (page) => {
     setCurrentPage(page);
     const res = await dispatch(fetchPlaylist(currentPage, search, category));
@@ -36,19 +84,17 @@ const Home = () => {
 
   const handleCategoryFilter = (value, e) => {
     e.preventDefault();
-    dispatch(fetchPlaylist(currentPage, "", value));
+    const categoryFilter = value === "All" ? "" : value;
+    fetchPlaylist("", categoryFilter);
     setCategory(value);
   };
   const handleSearchFilter = (e) => {
     if (e.keyCode === 13) {
-      dispatch(fetchPlaylist(currentPage, e.target.value, category));
+      fetchPlaylist(e.target.value, category);
     } else {
-      dispatch(fetchPlaylist(currentPage, e.target.value, category));
+      fetchPlaylist(e.target.value, category);
     }
   };
-
-  console.log("categories===================", category);
-  console.log("playlist===================", playlist);
 
   console.log(Math.round(Math.random() * categories?.length));
   useEffect(() => {
