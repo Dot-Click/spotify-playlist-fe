@@ -96,7 +96,6 @@ const Home = () => {
     }
   };
 
-  console.log(Math.round(Math.random() * categories?.length));
   useEffect(() => {
     if (categories?.length > 0) {
       const randomValues = categories?.map(
@@ -106,9 +105,8 @@ const Home = () => {
     }
   }, [categories]);
   return (
-    <div className="green-box py-3">
-      <div className="container">
-        <img src={spotifyLogo} />
+    <div className="green-box d-flex justify-content-center align-items-center py-3">
+      <div className="container ">
         <div className="glass-box my-3">
           <div className="row">
             <div className="col-xl-9 col-lg-12">
